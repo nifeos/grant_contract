@@ -422,4 +422,53 @@ mod tests {
         let mut out = [0u8; MAXIMUM_VERB_BYTES];
         assert_eq!(verb_key(&verb, Some(b"-aaaaa"), &mut out), Some(&verb[..]));
     }
+
+    /// **A bit set reads back only when every bit names an authority.** Every one of the twelve
+    /// does, alone and all together; a bit above them, alone or beside a known one, is refused.
+    #[test]
+    fn from_bits_refuses_a_bit_that_names_no_authority() {
+        for bit in 0..12 {
+            let one = ManifestAuthorities::from_bits(1 << bit);
+            assert_eq!(one.map(ManifestAuthorities::bits), Some(1 << bit));
+        }
+        assert_eq!(
+            ManifestAuthorities::from_bits(ManifestAuthorities::ALL.bits()),
+            Some(ManifestAuthorities::ALL)
+        );
+        assert_eq!(
+            ManifestAuthorities::from_bits(0),
+            Some(ManifestAuthorities::NONE)
+        );
+        assert_eq!(ManifestAuthorities::from_bits(1 << 12), None);
+        assert_eq!(ManifestAuthorities::from_bits(1 << 12 | 1), None);
+        assert_eq!(ManifestAuthorities::from_bits(u16::MAX), None);
+    }
+
+    /// **A two-word line that is no verb falls back to its first word.** `list -u` is in the
+    /// table, `list -x` is not, so `list -x` holds what `list` holds, and a first word that is no
+    /// verb holds nothing.
+    #[test]
+    fn a_two_word_line_falls_back_to_its_first_word() {
+        let all = Manifest {
+            clock: true,
+            network: true,
+            ..NOTHING
+        };
+        let table = [
+            VerbGrant {
+                verb: "list",
+                authorities: ManifestAuthorities::CLOCK,
+            },
+            VerbGrant {
+                verb: "list -u",
+                authorities: ManifestAuthorities::NETWORK,
+            },
+        ];
+        let narrowed = |line: &[u8]| narrow_by_verb(&all, &table, Some(line));
+        assert!(narrowed(b"list -u").network && !narrowed(b"list -u").clock);
+        assert!(narrowed(b"list -x").clock && !narrowed(b"list -x").network);
+        assert!(narrowed(b"list").clock);
+        let stranger = narrowed(b"show -u");
+        assert!(!stranger.clock && !stranger.network);
+    }
 }

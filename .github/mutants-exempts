@@ -2,3 +2,11 @@
 #   src/lib.rs:4 # swapping the operand order is the same arithmetic
 # A line without a reason is refused, and a line naming a survivor that no longer exists is
 # refused too, so this list can only shrink by a diff that says why.
+src/verbs.rs:20 # CLOCK is `1 << 0`, and `1 >> 0` is the same bit
+src/manifest.rs:318 # ENUMERATE is `1 << 0`, and `1 >> 0` is the same bit
+src/manifest.rs:323 # the rights bits are single and distinct (RIGHTS_BITS_DO_NOT_OVERLAP), so `|` and `^` agree
+src/manifest.rs:326 # the rights bits are single and distinct (RIGHTS_BITS_DO_NOT_OVERLAP), so `|` and `^` agree
+src/manifest.rs:327 # the rights bits are single and distinct (RIGHTS_BITS_DO_NOT_OVERLAP), so `|` and `^` agree
+src/manifest.rs:129 # `j *= 1` from zero never advances, so the duplicate scan never ends; the tests hang rather than pass
+src/manifest.rs:132 # `i *= 1` from zero never advances, so the letter walk never ends; the tests hang rather than pass
+src/manifest.rs:406 # `i *= 1` from zero never advances, so the widening-letter search never ends; the tests hang rather than pass
