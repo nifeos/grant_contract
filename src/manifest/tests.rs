@@ -67,3 +67,58 @@ fn a_widening_option_must_be_one_the_manifest_declares() {
     assert!(a_manifest_with(no_widening, b"").is_well_formed());
     assert!(a_manifest_with(DirectoryGrantDeclaration::Forbidden, b"").is_well_formed());
 }
+
+/// **Only a stream of bytes has anything for `>` and `|` to substitute, and only a declared second
+/// stream has a slot for `2>`.**
+#[test]
+fn an_output_declaration_answers_for_its_operators() {
+    let diagnostics = OutputDeclaration::BytesAndDiagnostics { slot: 61 };
+    assert!(OutputDeclaration::Bytes.is_byte_stream());
+    assert!(diagnostics.is_byte_stream());
+    assert!(!OutputDeclaration::Silent.is_byte_stream());
+    assert_eq!(diagnostics.diagnostics_slot(), Some(61));
+    assert_eq!(OutputDeclaration::Bytes.diagnostics_slot(), None);
+    assert_eq!(OutputDeclaration::Silent.diagnostics_slot(), None);
+}
+
+/// **Only a program that declares `Words` hears the line as its argv.**
+#[test]
+fn only_a_words_declaration_hears_words() {
+    assert!(ProgramArgumentDeclaration::Words(WordGrant::ReadOnly).hears_words());
+    assert!(!ProgramArgumentDeclaration::Required.hears_words());
+    assert!(!ProgramArgumentDeclaration::Forbidden.hears_words());
+}
+
+/// **Each word grant asks for exactly its rights**, as the file service's bits: enumerate (0),
+/// read (1), write (2), create (3) and descend (5). Each grant adds to the one before it.
+#[test]
+fn each_word_grant_asks_for_exactly_its_rights() {
+    let read = 1 | 1 << 1 | 1 << 5;
+    assert_eq!(WordGrant::ReadOnly.rights(), read);
+    assert_eq!(WordGrant::ReadWrite.rights(), read | 1 << 2);
+    assert_eq!(WordGrant::Create.rights(), read | 1 << 2 | 1 << 3);
+}
+
+/// **The index store opens with a reader's rights to read and a creator's to write**, and a
+/// program that declares no store opens nothing.
+#[test]
+fn the_index_store_opens_with_the_rights_it_declares() {
+    assert_eq!(IndexStoreDeclaration::Forbidden.rights(), None);
+    assert_eq!(
+        IndexStoreDeclaration::ReadOnly.rights(),
+        Some(WordGrant::ReadOnly.rights())
+    );
+    assert_eq!(
+        IndexStoreDeclaration::ReadWrite.rights(),
+        Some(WordGrant::Create.rights())
+    );
+}
+
+/// **An option set written in source that repeats a letter is refused**, by a panic at run time
+/// and a compile error in a `const`.
+#[test]
+#[should_panic(expected = "an option set is at most 16 distinct ASCII letters or digits")]
+fn a_repeated_letter_in_source_is_refused() {
+    let letters: &[u8] = core::hint::black_box(b"aa");
+    let _ = ShortOptions::new(letters);
+}
