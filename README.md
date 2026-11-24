@@ -1,9 +1,9 @@
 # grant_contract
 
-[![check](https://github.com/nifeos/grant_contract/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nifeos/grant_contract/actions/workflows/ci.yml?query=branch%3Amain)
-[![proofs](https://github.com/nifeos/grant_contract/actions/workflows/proofs.yml/badge.svg?branch=main)](https://github.com/nifeos/grant_contract/actions/workflows/proofs.yml?query=branch%3Amain)
-[![license](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](https://github.com/nifeos/grant_contract#license)
-[![minimum Rust version](https://img.shields.io/badge/rust-1.88%2B-blue.svg)](https://github.com/nifeos/grant_contract/blob/main/Cargo.toml)
+[![check](https://github.com/partsfoundry/grant_contract/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/partsfoundry/grant_contract/actions/workflows/ci.yml?query=branch%3Amain)
+[![proofs](https://github.com/partsfoundry/grant_contract/actions/workflows/proofs.yml/badge.svg?branch=main)](https://github.com/partsfoundry/grant_contract/actions/workflows/proofs.yml?query=branch%3Amain)
+[![license](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](https://github.com/partsfoundry/grant_contract#license)
+[![minimum Rust version](https://img.shields.io/badge/rust-1.88%2B-blue.svg)](https://github.com/partsfoundry/grant_contract/blob/main/Cargo.toml)
 
 What a program declares it can receive, as types, in a capability system where a program holds
 only what its spawner hands it. A `Manifest` names each grant a program accepts: an integer
