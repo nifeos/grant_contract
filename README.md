@@ -76,8 +76,22 @@ assert_eq!(NETWORK_SLOT, 10);
 
 ## What is proven
 
-No Kani harness covers this crate yet. Host tests cover the manifest's rules (an option set, a
-well-formed directory grant) and the narrowing by verb.
+Kani, a model checker that proves properties for every input up to a stated size, checks the
+properties below. Each harness has a falsification patch under `falsifications/`: a small defect
+that the harness must catch. Host tests cover the same rules by example.
+
+- An option set holds exactly the letters it receives, at most sixteen ASCII letters or digits
+  with none twice, and `ShortOptions::try_new` refuses any other input.
+- A manifest is well formed exactly when the option that widens its directory grant, if it names
+  one, is an option it declares.
+- Narrowing a manifest by its verb never widens it: an authority survives only when the manifest
+  declares it and the verb's entry grants it, the index store never rises, and nothing a verb
+  cannot choose changes.
+
+The proofs need Kani 0.68.0, which `rustup` does not install: run
+`cargo install --locked kani-verifier --version 0.68.0`, then `cargo kani setup`, which downloads
+a model checker. After that, `cargo kani` runs all 3 harnesses, and `cargo kani --harness <name>`
+runs one. A test fails when that count and the source differ.
 
 ## Building and testing
 
