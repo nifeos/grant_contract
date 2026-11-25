@@ -69,16 +69,10 @@ fn narrowed_by(
     }
 }
 
-/// Falsification: replayable `falsifications/verbs.verification.a_verb_never_widens_a_manifest.patch`
-/// For any manifest, a verb table of up to two entries (one verb and the same verb with an
-/// option) granting anything, and any line verb of up to seven bytes or none,
-/// [`narrow_by_verb`] keeps each authority only when the manifest declares it and the verb's
-/// entry names it, never holds more of the index store than the manifest declares, and changes no
-/// field a verb cannot choose. An empty table returns the manifest as it is.
-#[kani::proof]
-#[kani::unwind(18)]
-fn a_verb_never_widens_a_manifest() {
-    let m = Manifest {
+/// A manifest that holds any of the authorities and the index store, with its grants, options,
+/// streams and startup fixed.
+fn any_manifest() -> Manifest {
+    Manifest {
         program_argument: ProgramArgumentDeclaration::Forbidden,
         memory_grant: MemoryGrantDeclaration::Forbidden,
         file: FileGrantDeclaration::Forbidden,
@@ -103,7 +97,19 @@ fn a_verb_never_widens_a_manifest() {
         activation_directory: kani::any(),
         console_input: kani::any(),
         startup: StartupContract::Std,
-    };
+    }
+}
+
+/// Falsification: replayable `falsifications/verbs.verification.a_verb_never_widens_a_manifest.patch`
+/// For any manifest, a verb table of up to two entries (one verb and the same verb with an
+/// option) granting anything, and any line verb of up to seven bytes or none,
+/// [`narrow_by_verb`] keeps each authority only when the manifest declares it and the verb's
+/// entry names it, never holds more of the index store than the manifest declares, and changes no
+/// field a verb cannot choose. An empty table returns the manifest as it is.
+#[kani::proof]
+#[kani::unwind(18)]
+fn a_verb_never_widens_a_manifest() {
+    let m = any_manifest();
     let table = [
         VerbGrant {
             verb: "list",
