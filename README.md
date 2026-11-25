@@ -80,8 +80,8 @@ Kani, a model checker that proves properties for every input up to a stated size
 properties below. Each harness has a falsification patch under `falsifications/`: a small defect
 that the harness must catch. Host tests cover the same rules by example.
 
-- An option set is the letters it was given, at most sixteen ASCII letters or digits with none
-  twice, or it is refused.
+- An option set holds exactly the letters it receives, at most sixteen ASCII letters or digits
+  with none twice, and `ShortOptions::try_new` refuses any other input.
 - A manifest is well formed exactly when the option that widens its directory grant, if it names
   one, is an option it declares.
 - Narrowing a manifest by its verb never widens it: an authority survives only when the manifest
