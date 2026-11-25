@@ -629,5 +629,8 @@ pub enum StartupContract {
     Std,
 }
 
+#[cfg(kani)]
+mod verification;
+
 #[cfg(test)]
 mod tests;

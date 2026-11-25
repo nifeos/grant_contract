@@ -209,6 +209,9 @@ pub fn page_verb<'o>(page: &[u8], out: &'o mut [u8; MAXIMUM_VERB_BYTES]) -> Opti
     verb_key(verb, words.next(), out)
 }
 
+#[cfg(kani)]
+mod verification;
+
 #[cfg(test)]
 mod tests {
     use super::*;

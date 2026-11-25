@@ -1,0 +1,18 @@
+Falsifies `grant_contract::verbs::verification::a_verb_never_widens_a_manifest`.
+
+The defect: a manifest that forbids the index store is handed read access to it whenever the verb's entry grants indexes.
+
+Expected to fail: the harness's `assert!(index_rank(n.indexes) <= index_rank(m.indexes))`.
+
+diff --git a/src/verbs.rs b/src/verbs.rs
+--- a/src/verbs.rs
++++ b/src/verbs.rs
+@@ -126,7 +126,7 @@
+             {
+                 IndexStoreDeclaration::ReadWrite
+             }
+-            IndexStoreDeclaration::ReadWrite | IndexStoreDeclaration::ReadOnly
++            _
+                 if g.contains(ManifestAuthorities::INDEXES) =>
+             {
+                 IndexStoreDeclaration::ReadOnly

@@ -1,0 +1,18 @@
+Falsifies `grant_contract::manifest::verification::an_option_set_is_its_letters_or_nothing`.
+
+The defect: the duplicate scan stops one letter short, so a letter repeated right after itself, as in `aa`, is accepted.
+
+Expected to fail: the harness's `assert!(lawful)` on an accepted set.
+
+diff --git a/src/manifest.rs b/src/manifest.rs
+--- a/src/manifest.rs
++++ b/src/manifest.rs
+@@ -122,7 +122,7 @@
+                 return None;
+             }
+             let mut j = 0;
+-            while j < i {
++            while j + 1 < i {
+                 if letters[j] == l {
+                     return None;
+                 }

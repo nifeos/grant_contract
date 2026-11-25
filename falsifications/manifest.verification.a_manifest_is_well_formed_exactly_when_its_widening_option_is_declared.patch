@@ -1,0 +1,18 @@
+Falsifies `grant_contract::manifest::verification::a_manifest_is_well_formed_exactly_when_its_widening_option_is_declared`.
+
+The defect: a directory grant that names a widening option the manifest never declares is still called well formed.
+
+Expected to fail: the harness's `assert_eq!(m.is_well_formed(), declared)`.
+
+diff --git a/src/manifest.rs b/src/manifest.rs
+--- a/src/manifest.rs
++++ b/src/manifest.rs
+@@ -405,7 +405,7 @@
+                     }
+                     i += 1;
+                 }
+-                false
++                true
+             }
+             _ => true,
+         }
