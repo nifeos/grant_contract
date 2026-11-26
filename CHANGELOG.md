@@ -6,6 +6,9 @@ sentence beside it.
 ## Unreleased
 
 - First version.
+- An approval name is now refused when it holds a slash, a NUL (null) byte, or is `.` or `..`.
+  `delegated_identity` answers `None` for such a name. It already did so for an empty name, a name
+  with a space and a name longer than thirty-two bytes.
 
 ## BUGS
 

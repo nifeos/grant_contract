@@ -164,9 +164,14 @@ pub fn verb_key<'o>(
 
 /// **The approval a delegated line asks to act within** (a scripted install is granted only
 /// what the owner's approval file allows): the word after `--within` on the argument page,
-/// copied into `out`, its length returned. `None` when the line says no `--within`, when the
-/// name is empty, or when it is longer than thirty-two bytes, which is the store's component
-/// bound. The progenitor reads this when it places the installer endpoint, and the badge
+/// copied into `out`, its length returned. The name is one component of a store path, so it is
+/// `None` when the line says no `--within` and when the name:
+///
+/// - is empty, or longer than thirty-two bytes, which is the store's component bound;
+/// - holds a space, a slash (`/`) or a NUL (null) byte;
+/// - is exactly `.` or `..`.
+///
+/// The progenitor reads this when it places the installer endpoint, and the badge
 /// carries the approval the name is stored under; `jig` reads its own copy of the same words to
 /// know that its check is the progenitor's.
 ///
@@ -188,7 +193,7 @@ pub fn delegated_identity(page: &[u8], out: &mut [u8; 32]) -> Option<usize> {
     while let Some(word) = words.next() {
         if word == b"--within" {
             let name = words.next()?;
-            if name.is_empty() || name.len() > 32 || name.contains(&b' ') {
+            if !is_one_component_name(name) {
                 return None;
             }
             out[..name.len()].copy_from_slice(name);
@@ -196,6 +201,16 @@ pub fn delegated_identity(page: &[u8], out: &mut [u8; 32]) -> Option<usize> {
         }
     }
     None
+}
+
+/// Whether `name` may stand as one component of a store path: at most thirty-two bytes, neither
+/// empty nor `.` nor `..`, and holding no space, slash or NUL byte.
+fn is_one_component_name(name: &[u8]) -> bool {
+    !name.is_empty()
+        && name.len() <= 32
+        && name != b"."
+        && name != b".."
+        && !name.iter().any(|&byte| matches!(byte, b' ' | b'/' | 0))
 }
 
 /// **The verb on an argument page**: its `argv[1]`, and `argv[2]` after a space when both fit,
@@ -387,6 +402,50 @@ mod tests {
             None
         );
         assert_eq!(named(&[b"jig", b"install", b"greeting"], &mut out), None);
+    }
+
+    /// **An approval name is one store path component**: a name that is empty, holds a space, a
+    /// slash or a NUL byte, or is exactly `.` or `..`, is refused, and the bytes in `out` are left
+    /// as they were. A name that only starts with a dot, or holds two dots among other bytes, is a
+    /// name.
+    #[test]
+    fn an_approval_name_that_is_not_one_component_is_refused() {
+        let named = |name: &[u8], out: &mut [u8; 32]| {
+            delegated_identity(&page(&[b"jig", b"install", b"--within", name]), out)
+        };
+        for refused in [
+            &b""[..],
+            b"a b",
+            b"/",
+            b"a/b",
+            b"lab-runner/",
+            b"/lab-runner",
+            b"\0",
+            b"a\0b",
+            b"lab-runner\0",
+            b".",
+            b"..",
+        ] {
+            let mut out = [0xa5u8; 32];
+            assert_eq!(named(refused, &mut out), None, "{refused:?}");
+            assert_eq!(out, [0xa5u8; 32], "{refused:?}");
+        }
+        for accepted in [
+            &b"lab-runner"[..],
+            b".hidden",
+            b"...",
+            b"a..b",
+            b"..a",
+            b"a.",
+        ] {
+            let mut out = [0u8; 32];
+            assert_eq!(
+                named(accepted, &mut out),
+                Some(accepted.len()),
+                "{accepted:?}"
+            );
+            assert_eq!(&out[..accepted.len()], accepted);
+        }
     }
 
     #[test]
